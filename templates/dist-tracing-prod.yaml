@@ -1,0 +1,88 @@
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+ name: jaeger-prod
+ namespace: {{ .Values.serviceMesh.controlPlane.namespace }}
+ annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+          - key: beta.kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+        weight: 2
+      - preference:
+          matchExpressions:
+          - key: beta.kubernetes.io/arch
+            operator: In
+            values:
+            - arm64
+        weight: 2
+      - preference:
+          matchExpressions:
+          - key: beta.kubernetes.io/arch
+            operator: In
+            values:
+            - ppc64le
+        weight: 2
+      - preference:
+          matchExpressions:
+          - key: beta.kubernetes.io/arch
+            operator: In
+            values:
+            - s390x
+        weight: 2
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: beta.kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+            - arm64
+            - ppc64le
+            - s390x
+  allInOne:
+    options:
+      log-level: debug
+      query:
+        base-path: /
+  ingress:
+    enabled: true
+    openshift:
+      htpasswdFile: /etc/proxy/htpasswd/auth
+      sar: '{"namespace": "test-db", "resource": "pods", "verb": "get"}'
+    security: oauth-proxy
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+  storage:
+    options:
+      memory:
+        max-traces: 50000
+  strategy: allInOne
+  volumeMounts:
+  - mountPath: /etc/proxy/htpasswd
+    name: secret-htpasswd
+  - mountPath: /etc/pki/ca-trust/extracted/pem/
+    name: trusted-ca-bundle
+    readOnly: true
+  volumes:
+  - name: secret-htpasswd
+    secret:
+      secretName: htpasswd
+  - configMap:
+      defaultMode: 420
+      items:
+      - key: ca-bundle.crt
+        path: tls-ca-bundle.pem
+      name: trusted-ca-bundle
+      optional: true
+    name: trusted-ca-bundle

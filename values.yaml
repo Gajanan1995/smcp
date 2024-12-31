@@ -1,0 +1,48 @@
+# Default values for rh-adp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+ado_groups:
+
+serviceMesh:
+  name: servicemeshoperator
+  namespace: openshift-operators
+  channel: stable
+  installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  proxy:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 300m
+      memory: 1Gi
+  controlPlane:
+    namespace: web-app
+    version: v2.6
+    sampling: 100
+    mode: MultiTenant
+
+kiali:
+  name: kiali-ossm
+  namespace: openshift-operators
+  channel: stable
+  installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+elasticSearch:
+  name: elasticsearch-operator
+  namespace: openshift-operators
+  channel: stable
+  installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+jeager:
+  name: jaeger-product
+  namespace: openshift-distributed-tracing
+  installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  channel: stable

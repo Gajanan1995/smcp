@@ -1,0 +1,57 @@
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  name: basic
+  namespace: {{ .Values.serviceMesh.controlPlane.namespace }}
+spec:
+  security:
+    dataPlane:
+      mtls: true
+    manageNetworkPolicy: false
+  tracing:
+    sampling: {{ .Values.serviceMesh.controlPlane.sampling }}
+    type: Jaeger
+  mode: {{ .Values.serviceMesh.controlPlane.mode }}
+  profiles:
+    - default
+  proxy:
+    injection:
+      autoInject: true
+  gateways:
+    egress:
+      enabled: false
+      runtime:
+        deployment:
+          autoScaling:
+            enabled: true
+      service: {}
+    ingress:
+      runtime:
+        deployment:
+          autoScaling:
+            enabled: true
+            maxReplicas: 9
+            minReplicas: 2
+      service: {}
+    openshiftRoute:
+      enabled: false
+  policy:
+    type: Istiod
+  addons:
+    grafana:
+      enabled: true
+    jaeger:
+      name: jaeger-prod
+    kiali:
+      enabled: true
+      install:
+        dashboard:
+          enablePrometheus: true
+          enableTracing: true
+          viewOnly: true
+          enableGrafana: false
+    prometheus:
+      enabled: true
+  version: {{ .Values.serviceMesh.controlPlane.version }}
+  telemetry:
+    type: Istiod
